@@ -1742,6 +1742,13 @@ body.sidebar-open .hamburger span::after{ transform: rotate(-45deg); }
   /* mostra a topbar */
   .mobile-topbar{ display: flex; }
 
+  /* Mostra as ações rápidas do menu apenas no mobile */
+  .sidebar-quick[data-mobile-only] {
+    display: block;
+    /* (O padding e outros estilos que você já tem para ele podem ficar aqui) */
+    padding: 14px 6px 8px 6px;
+  }
+
   /* esconde os botões grandes do topo */
   .main-header-actions .botao-acao,
   .main-header-actions .botao-destaque-adicionar{
@@ -1789,4 +1796,9 @@ body.sidebar-open .hamburger span::after{ transform: rotate(-45deg); }
   .card-title{ font-size: 15px; }
 }
 
+
+/* Esconde o menu de ações rápidas no desktop por padrão */
+.sidebar-quick[data-mobile-only] {
+  display: none;
+}
 
