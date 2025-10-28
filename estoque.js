@@ -11,22 +11,6 @@ const firebaseConfig = {
 // Inicializa Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const auth = firebase.auth(); // <-- Adiciona a instância de autenticação
-
-// --- VERIFICAÇÃO DE LOGIN ---
-auth.onAuthStateChanged(user => {
-    if (!user) {
-        // Se não houver usuário logado, redireciona para a página de login
-        console.log("Usuário não logado, redirecionando para login.html");
-        window.location.href = 'login.html';
-    } else {
-        // Se o usuário estiver logado, continua carregando a página normalmente
-        console.log("Usuário logado:", user.email);
-        // Chama a função principal que configura a página DEPOIS de confirmar o login
-        inicializarPaginaEstoque();
-    }
-});
-// --- FIM DA VERIFICAÇÃO DE LOGIN ---
 
 // --- VARIÁVEIS GLOBAIS ---
 let todosItens = [];
@@ -1320,4 +1304,5 @@ document.addEventListener("DOMContentLoaded", () => {
     a.addEventListener('click', () => closeMenu());
   });
 })();
+
 
