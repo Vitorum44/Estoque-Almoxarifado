@@ -858,11 +858,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 📄 Botão Exportar/Importar
     document.getElementById("botao-exportar-importar")?.addEventListener("click", abrirModalExportarImportar);
+    document.getElementById("botao-exportar-importar_mobile")?.addEventListener("click", abrirModalExportarImportar);
 
     // ➕ Botão Cadastrar Categoria
-    document.getElementById("toggleCategoriaBtn")?.addEventListener("click", () => {
+    // Criando uma função para reutilizar
+    const abrirModalCategoria = () => {
         document.getElementById("modal-categoria").style.display = "flex";
-    });
+    };
+    // Adicionando o listener aos DOIS botões
+    document.getElementById("toggleCategoriaBtn")?.addEventListener("click", abrirModalCategoria);
+    document.getElementById("toggleCategoriaBtn_mobile")?.addEventListener("click", abrirModalCategoria);
+
 
     // Fechar modal categoria
     document.getElementById("cancelar-categoria")?.addEventListener("click", () => {
@@ -991,8 +997,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnCancelarProduto = document.getElementById("cancelar-produto");
     const btnSalvarProduto = document.getElementById("salvar-produto");
 
-    // Abrir modal
-    btnAbrirProduto?.addEventListener("click", () => {
+    // Função reutilizável para abrir o modal de produto
+    const abrirModalProduto = () => {
         modalProduto.style.display = "flex";
 
         // seta data de hoje automaticamente
@@ -1004,7 +1010,12 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("produto-categoria"),
             document.getElementById("produto-subcategoria")
         );
-    });
+    };
+
+    // Ouvir o botão do desktop E o link do mobile
+    btnAbrirProduto?.addEventListener("click", abrirModalProduto);
+    document.getElementById("toggleButton_mobile")?.addEventListener("click", abrirModalProduto);
+
 
     // Cancelar
     btnCancelarProduto?.addEventListener("click", () => {
@@ -1247,16 +1258,3 @@ document.addEventListener("DOMContentLoaded", () => {
     a.addEventListener('click', () => closeMenu());
   });
 })();
-
-
-
-
-
-
-
-
-
-
-
-
-
