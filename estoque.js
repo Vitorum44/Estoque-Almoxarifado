@@ -534,28 +534,85 @@ function adicionarItemAoDOM(prod) {
 
   cardGrid.appendChild(card);
 
+  // Botão Editar
   card.querySelector(".editar-item")?.addEventListener("click", () => {
-  const itemAtual = todosItens.find((x) => x.id === id);
-  if (itemAtual) abrirEditarProduto(itemAtual); // ✅ chama o modal profissional
-});
+    const itemAtual = todosItens.find((x) => x.id === id);
+    // Verifica se a função global existe antes de chamar
+    if (itemAtual && typeof window.abrirEditarProduto === 'function') {
+         window.abrirEditarProduto(itemAtual);
+    } else if (!itemAtual) {
+         console.error("Item não encontrado nos dados locais para edição:", id);
+    } else {
+         console.error("Função abrirEditarProduto não definida globalmente.");
+    }
+  });
 
-
-  card.querySelector(".remover-item")?.addEventListener("click", () => {
+  // Botão Remover (com a correção de remoção imediata)
+  const btnRemover = card.querySelector(".remover-item");
+  btnRemover?.addEventListener("click", () => {
     mostrarConfirmacao({
       titulo: "Confirmar Remoção",
-      mensagem: `Tem certeza que deseja remover "${nome}"?`,
+      mensagem: `Tem certeza que deseja remover "${nome || 'este item'}"?`, // Usa nome ou texto genérico
       textoConfirmar: "Remover",
-      classeConfirmar: "btn-perigo",
+      classeConfirmar: "btn-danger", // Usando classe Bootstrap para botão vermelho
       onConfirm: async () => {
-        await removerItemFirestore(id);
-        mostrarNotificacao(`"${nome}" foi removido com sucesso.`);
-        carregarEstoque();
+
+        // --- CORREÇÃO INÍCIO ---
+        // 1. Aplica estilo para animação de saída
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.9)';
+
+        // 2. Espera a animação e então remove do DOM e do Firestore
+        setTimeout(async () => {
+            // Remove do DOM
+            card.remove();
+
+            try {
+                // 3. Chama a função para remover do Firestore (em background)
+                await removerItemFirestore(id); //
+
+                // 4. Atualiza os arrays locais (evita recarregar tudo do Firestore)
+                todosItens = todosItens.filter(item => item.id !== id);
+                itensFiltrados = itensFiltrados.filter(item => item.id !== id);
+
+                // 5. Mostra a notificação DEPOIS que removeu do Firestore
+                mostrarNotificacao(`"${nome || 'Item'}" foi removido com sucesso.`); //
+
+                // 6. Atualiza o contador e a paginação (sem redesenhar todos os cards)
+                atualizarContadorTexto(); //
+
+                // Recalcula a página atual e renderiza se necessário
+                const totalPaginas = Math.ceil(itensFiltrados.length / itensPorPagina);
+                if (paginaAtual > totalPaginas && totalPaginas > 0) {
+                    paginaAtual = totalPaginas; // Vai para a última página se a atual ficou vazia
+                }
+                 // Redesenha a página atual (pode estar vazia ou ter menos itens) e a paginação
+                 mostrarPagina(paginaAtual); //
+                 renderizarPaginacao(); //
+
+
+            } catch (error) {
+                 mostrarNotificacao(`Erro ao remover "${nome || 'Item'}".`, "erro");
+                 console.error("Erro ao remover item:", error);
+                 // Em caso de erro, recarrega tudo para garantir consistência
+                 carregarEstoque(); //
+            }
+
+        }, 300); // Tempo correspondente à animação CSS
+        // --- CORREÇÃO FIM ---
       }
     });
   });
 
+  // Botão Histórico
   card.querySelector(".historico-item")?.addEventListener("click", () => {
-    mostrarModalHistorico(id, nome);
+     // Verifica se a função global existe
+     if (typeof mostrarModalHistorico === 'function') {
+        mostrarModalHistorico(id, nome || "Item sem nome"); //
+     } else {
+        console.error("Função mostrarModalHistorico não definida.");
+     }
   });
 }
 
@@ -1304,5 +1361,6 @@ document.addEventListener("DOMContentLoaded", () => {
     a.addEventListener('click', () => closeMenu());
   });
 })();
+
 
 
