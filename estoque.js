@@ -1070,28 +1070,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Salvar
     btnSalvarProduto?.addEventListener("click", async () => {
-        const nome = document.getElementById("produto-nome").value.trim();
-        const quantidade = parseInt(document.getElementById("produto-quantidade").value, 10) || 0;
-        const categoria = document.getElementById("produto-categoria").value;
-        const subcategoria = document.getElementById("produto-subcategoria").value;
-        const dataEntrada = document.getElementById("produto-data").value;
-        const imagemFile = document.getElementById("produto-imagem").files[0];
-
-        if (!nome || quantidade <= 0) {
-            mostrarNotificacao("Preencha o nome e a quantidade corretamente.", "erro");
-            return;
-        }
-
-        let imagemBase64 = "";
-        if (imagemFile) {
-            imagemBase64 = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.readAsDataURL(imagemFile);
-            });
-        }
+        
+        // CORREÇÃO: Desabilita o botão para evitar clique duplo
+        btnSalvarProduto.disabled = true;
+        btnSalvarProduto.textContent = "Salvando...";
 
         try {
+            const nome = document.getElementById("produto-nome").value.trim();
+            const quantidade = parseInt(document.getElementById("produto-quantidade").value, 10) || 0;
+            const categoria = document.getElementById("produto-categoria").value;
+            const subcategoria = document.getElementById("produto-subcategoria").value;
+            const dataEntrada = document.getElementById("produto-data").value;
+            const imagemFile = document.getElementById("produto-imagem").files[0];
+
+            if (!nome || quantidade <= 0) {
+                mostrarNotificacao("Preencha o nome e a quantidade corretamente.", "erro");
+                // CORREÇÃO: Reabilita o botão se a validação falhar
+                btnSalvarProduto.disabled = false;
+                btnSalvarProduto.textContent = "Salvar";
+                return;
+            }
+
+            let imagemBase64 = "";
+            if (imagemFile) {
+                imagemBase64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(imagemFile);
+                });
+            }
+
             const id = await salvarItemFirestore({
                 nome,
                 quantidade,
@@ -1115,6 +1123,10 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error("Erro ao salvar produto:", error);
             mostrarNotificacao("Erro ao salvar produto.", "erro");
+        } finally {
+            // CORREÇÃO: Reabilita o botão em qualquer cenário (sucesso ou erro)
+            btnSalvarProduto.disabled = false;
+            btnSalvarProduto.textContent = "Salvar";
         }
     });
 
@@ -1157,45 +1169,57 @@ window.abrirEditarProduto = async (item) => {
 
 // Salvar alterações
 btnSalvarEditar?.addEventListener("click", async () => {
-  const id = document.getElementById("editar-id").value;
-  const nome = document.getElementById("editar-nome").value.trim();
-  const quantidade = parseInt(document.getElementById("editar-quantidade").value, 10) || 0;
-  const categoria = document.getElementById("editar-categoria").value;
-  const subcategoria = document.getElementById("editar-subcategoria").value;
-  const dataEntrada = document.getElementById("editar-data").value;
-  const imagemFile = document.getElementById("editar-imagem").files[0];
+    
+    // CORREÇÃO: Desabilita o botão
+    btnSalvarEditar.disabled = true;
+    btnSalvarEditar.textContent = "Salvando...";
 
-  if (!id || !nome) {
-    mostrarNotificacao("Preencha os campos corretamente.", "erro");
-    return;
-  }
+    try {
+        const id = document.getElementById("editar-id").value;
+        const nome = document.getElementById("editar-nome").value.trim();
+        const quantidade = parseInt(document.getElementById("editar-quantidade").value, 10) || 0;
+        const categoria = document.getElementById("editar-categoria").value;
+        const subcategoria = document.getElementById("editar-subcategoria").value;
+        const dataEntrada = document.getElementById("editar-data").value;
+        const imagemFile = document.getElementById("editar-imagem").files[0];
 
-  let imagemBase64 = "";
-  if (imagemFile) {
-    imagemBase64 = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.readAsDataURL(imagemFile);
-    });
-  }
+        if (!id || !nome) {
+            mostrarNotificacao("Preencha os campos corretamente.", "erro");
+            // CORREÇÃO: Reabilita se a validação falhar
+            btnSalvarEditar.disabled = false;
+            btnSalvarEditar.textContent = "Salvar";
+            return;
+        }
 
-  try {
-    await db.collection("estoque").doc(id).update({
-      nome,
-      quantidade,
-      categoria,
-      subcategoria,
-      dataEntrada,
-      ...(imagemBase64 && { imagem: imagemBase64 })
-    });
+        let imagemBase64 = "";
+        if (imagemFile) {
+            imagemBase64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(imagemFile);
+            });
+        }
 
-    mostrarNotificacao("Produto atualizado com sucesso!");
-    modalEditar.style.display = "none";
-    carregarEstoque();
-  } catch (error) {
-    console.error("Erro ao editar produto:", error);
-    mostrarNotificacao("Erro ao editar produto.", "erro");
-  }
+        await db.collection("estoque").doc(id).update({
+            nome,
+            quantidade,
+            categoria,
+            subcategoria,
+            dataEntrada,
+            ...(imagemBase64 && { imagem: imagemBase64 }) // Só atualiza a imagem se uma nova foi enviada
+        });
+
+        mostrarNotificacao("Produto atualizado com sucesso!");
+        modalEditar.style.display = "none";
+        carregarEstoque();
+    } catch (error) {
+        console.error("Erro ao editar produto:", error);
+        mostrarNotificacao("Erro ao editar produto.", "erro");
+    } finally {
+        // CORREÇÃO: Reabilita o botão
+        btnSalvarEditar.disabled = false;
+        btnSalvarEditar.textContent = "Salvar";
+    }
 });
 
 
