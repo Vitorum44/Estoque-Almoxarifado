@@ -856,18 +856,86 @@ document.addEventListener("DOMContentLoaded", () => {
     // 🔍 Busca geral
     document.getElementById("busca-geral")?.addEventListener("input", filtrarEAtualizarTabela);
 
-    // 📄 Botão Exportar/Importar
-    document.getElementById("botao-exportar-importar")?.addEventListener("click", abrirModalExportarImportar);
-    document.getElementById("botao-exportar-importar_mobile")?.addEventListener("click", abrirModalExportarImportar);
+    
+    // --- LÓGICA PARA BOTÕES DE AÇÃO (Desktop e Mobile) ---
 
-    // ➕ Botão Cadastrar Categoria
-    // Criando uma função para reutilizar
-    const abrirModalCategoria = () => {
+    // 📄 Exportar/Importar
+    document.getElementById("botao-exportar-importar")?.addEventListener("click", abrirModalExportarImportar);
+    document.getElementById("botao-exportar-importar_mobile")?.addEventListener("click", (e) => {
+        e.preventDefault(); // Links <a> precisam disso
+        abrirModalExportarImportar();
+    });
+
+    // ➕ Cadastrar Categoria
+    const abrirModalCategoria = (e) => {
+        if (e) e.preventDefault();
         document.getElementById("modal-categoria").style.display = "flex";
     };
-    // Adicionando o listener aos DOIS botões
     document.getElementById("toggleCategoriaBtn")?.addEventListener("click", abrirModalCategoria);
     document.getElementById("toggleCategoriaBtn_mobile")?.addEventListener("click", abrirModalCategoria);
+    
+    // ➕ Adicionar Produto
+    const btnAbrirProduto = document.getElementById("toggleButton");
+    const modalProduto = document.getElementById("modal-produto");
+    
+    const abrirModalProduto = (e) => {
+        if (e) e.preventDefault();
+        modalProduto.style.display = "flex";
+        const hoje = new Date().toISOString().split("T")[0];
+        document.getElementById("produto-data").value = hoje;
+        preencherSelectsCategoriaSubcategoria(
+            document.getElementById("produto-categoria"),
+            document.getElementById("produto-subcategoria")
+        );
+    };
+    btnAbrirProduto?.addEventListener("click", abrirModalProduto);
+    document.getElementById("toggleButton_mobile")?.addEventListener("click", abrirModalProduto);
+
+    
+    // 📸 Adicionar por NF (Botão que estava faltando!)
+    const handleAdicionarNF = (e) => {
+        if (e) e.preventDefault();
+        
+        // 1. Cria um input de arquivo temporário
+        const inputArquivo = document.createElement('input');
+        inputArquivo.type = 'file';
+        inputArquivo.accept = 'image/*'; // Aceita imagens
+        
+        // 2. Ouve a seleção do arquivo
+        inputArquivo.onchange = async (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                mostrarNotificacao("Nenhuma imagem selecionada.", "erro");
+                return;
+            }
+            
+            mostrarNotificacao("Processando imagem da NF...", "sucesso");
+            
+            try {
+                // 3. Chama a API (função que já existe)
+                const textoOCR = await chamarVisionAPI(file);
+                
+                if (textoOCR) {
+                    // 4. Se funcionar, mostra o texto no console (a lógica de processamento não existe)
+                    console.log("Texto extraído da NF:", textoOCR);
+                    mostrarNotificacao("Texto da NF extraído! (Verifique o console)", "sucesso");
+                    // NOTA: A lógica para *processar* o texto (processarTextoOCR) 
+                    // não existe no seu arquivo. Por enquanto, só exibimos o resultado.
+                }
+            } catch (error) {
+                mostrarNotificacao("Erro ao processar a NF.", "erro");
+                console.error(error);
+            }
+        };
+        
+        // 3. Clica no input de arquivo
+        inputArquivo.click();
+    };
+
+    document.getElementById("botao-adicionar-nf")?.addEventListener("click", handleAdicionarNF);
+    document.getElementById("botao-adicionar-nf_mobile")?.addEventListener("click", handleAdicionarNF);
+
+    // --- FIM DOS BOTÕES DE AÇÃO ---
 
 
     // Fechar modal categoria
@@ -992,30 +1060,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // === MODAL ADICIONAR PRODUTO ===
-    const modalProduto = document.getElementById("modal-produto");
-    const btnAbrirProduto = document.getElementById("toggleButton");
     const btnCancelarProduto = document.getElementById("cancelar-produto");
     const btnSalvarProduto = document.getElementById("salvar-produto");
-
-    // Função reutilizável para abrir o modal de produto
-    const abrirModalProduto = () => {
-        modalProduto.style.display = "flex";
-
-        // seta data de hoje automaticamente
-        const hoje = new Date().toISOString().split("T")[0];
-        document.getElementById("produto-data").value = hoje;
-
-        // Preenche selects
-        preencherSelectsCategoriaSubcategoria(
-            document.getElementById("produto-categoria"),
-            document.getElementById("produto-subcategoria")
-        );
-    };
-
-    // Ouvir o botão do desktop E o link do mobile
-    btnAbrirProduto?.addEventListener("click", abrirModalProduto);
-    document.getElementById("toggleButton_mobile")?.addEventListener("click", abrirModalProduto);
-
 
     // Cancelar
     btnCancelarProduto?.addEventListener("click", () => {
